@@ -13,51 +13,84 @@ class KMeans(object):
 	X: [[x1, y1], [x2, y2], [x3, y3]]
 	"""
 	def fit(self, X):
+		X = np.array(X)
+
+		#create random instance with seed
 		rgen = np.random.RandomState(self.random_state)
+
+		#find min, max of first, second column (x, y axes)
 		minX, maxX = X[:, 0].min(), X[:, 0].max()
 		minY, maxY = X[:, 1].min(), X[:, 1].max()
+
+		#initiate variables
 		self.labels_ = [0] * X.shape[0]
 		self.inertia_ = sys.float_info.max
+
+		#randomize centroids n_init times
 		for _ in range(self.n_init):
-			k = np.concatenate((np.random.uniform(low=minX, high=maxX, size=self.n_clusters),
-								np.random.uniform(low=minY, high=maxY, size=self.n_clusters)),
-								axis = 1)
-			labels = [0] * X.shape[0]
-			for _2 in range(self.max_iter):
+			#create random centroids
+			k = [np.random.uniform(low=minX, high=maxX, size=self.n_clusters),
+				np.random.uniform(low=minY, high=maxY, size=self.n_clusters)]
+			k = np.array(k).T
+
+			#create labels
+			labels = np.array([0] * X.shape[0])
+
+			#clustering max_iter times
+			for epoch in range(self.max_iter):
 				clusters_changed = False
+
+				#find minimum distances between points and centroids
 				for x_index, point in enumerate(X):
 					distance = sys.float_info.max
 					for k_index, centroid in enumerate(k):
-						dist = calc_distance(point, centroid)
+						dist = self.calc_distance(point, centroid)
 						if dist < distance:
 							distance = dist
 							labels[x_index] = k_index
+
 				#update centroids (k), cluster_changed
-				#cluster_changed == False -> break
-			total_variation = calc_total_variation(X, k, labels)
+				for k_index, centroid in enumerate(k):
+					old_centroid = centroid.copy()
+					cluster = X[labels == k_index]
+					if cluster.any():
+						centroid[0] = np.average(cluster[:,0])
+						centroid[1] = np.average(cluster[:,1])
+						if old_centroid[0] != centroid[0] or old_centroid[1] != centroid[1]:
+							clusters_changed = True
+
+				#cluster_changed == False -> break max_iter
+				if not clusters_changed:
+					break
+
+			#find the best result by finding the minimum total variation
+			total_variation = self.calc_total_variation(X, k, labels)
 			if total_variation < self.inertia_:
 				self.inertia_ = total_variation
 				self.labels_ = labels
+		return self
 
 	"""
 	X: [[x1, y1], [x2, y2], [x3, y3]]
 	k: [[x1, y1], [x2, y2], [x3, y3]]
 	labels: [0, 1, 2]
 	"""
-	def calc_total_variation(X, k, labels)
-		distances = []
-		for idx, centroid in enumerate(k):
-			clustered_X = X[labels == idx]
+	def calc_total_variation(self, X, k, labels):
+		squared_distances = []
+		for k_index, centroid in enumerate(k):
+			clustered_X = X[labels == k_index]
 			for point in clustered_X:
-				distances.append(calc_distance(centroid, point))
-		return np.dot[distances, distances]
+				x = point[0]-centroid[0]
+				y = point[1]-centroid[1]
+				squared_distances.append(x*x + y*y)
+		return sum(squared_distances)
 
 	"""
 	calculates distance from point a to point b
 	a: [x1, y1]
 	b: [x2, y2]
 	"""
-	def calc_distance(a, b):
+	def calc_distance(self, a, b):
 		x = b[0]-a[0]
 		y = b[1]-a[1]
 		return math.sqrt(x*x + y*y)
