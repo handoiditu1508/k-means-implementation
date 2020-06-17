@@ -76,14 +76,14 @@ class KMeans(object):
 	labels: [0, 1, 2]
 	"""
 	def calc_total_variation(self, X, k, labels):
-		squared_distances = []
+		total_variation = 0.
 		for k_index, centroid in enumerate(k):
 			clustered_X = X[labels == k_index]
 			for point in clustered_X:
 				x = point[0]-centroid[0]
 				y = point[1]-centroid[1]
-				squared_distances.append(x*x + y*y)
-		return sum(squared_distances)
+				total_variation += x*x + y*y
+		return total_variation
 
 	"""
 	calculates distance from point a to point b
