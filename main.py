@@ -45,13 +45,13 @@ maxDistance = 0.
 finalIndex = 0
 for i in range(len(Ks)):
 	d = calc_distance(Ks[i], totalVariations[i], a, b, c)
-	print(str(Ks[i])+": "+str(d))
+	print("{0} clusters have a total variations of {1}".format(Ks[i], d))
 	if maxDistance < d:
 		maxDistance = d
 		finalIndex = i
 
 #final K value
-print(Ks[finalIndex])
+print("choosen numbers of cluster: "+str(Ks[finalIndex]))
 
 #show K values and it's total variation
 plt.plot(Ks, totalVariations, c="r")
@@ -60,10 +60,10 @@ plt.xlabel("K values")
 plt.ylabel("Total variations")
 plt.show()
 
-#show clusters
-plt.scatter(data[:,0], data[:,1], c=kmeansStorage[finalIndex].labels_)
-plt.show()
-
-#show true clusters
-plt.scatter(data[:,0], data[:,1], c=target)
+fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(10, 4))
+ax[0].scatter(data[:,0], data[:,1], c=kmeansStorage[finalIndex].labels_)
+ax[0].set_title('Predicted clustering result')
+ax[1].scatter(data[:,0], data[:,1], c=target)
+ax[1].set_title('Real clustering result')
+plt.tight_layout()
 plt.show()
